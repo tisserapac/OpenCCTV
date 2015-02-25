@@ -12,10 +12,15 @@
 #include <string>
 #include "../VmsClient.hpp"
 #include "TcpMpegDecoder.hpp"
+#include <boost/property_tree/xml_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
 
-
-using namespace tcpsocket;
 using namespace std;
+using boost::property_tree::ptree;
+using namespace boost::algorithm;
+using namespace tcpsocket;
 
 namespace zoneminder {
 
@@ -28,7 +33,11 @@ private:
 	string _sServerName;
 	string _sServerPort;
 	string _sUrl;
-	//HttpClient* _pHttpClientPtr;
+	string _sIP;
+	string _sCameraId;
+	string _sFramesPerSecond;
+
+	bool setParameters(string sParamString);
 
 public:
 	ZoneminderClient();

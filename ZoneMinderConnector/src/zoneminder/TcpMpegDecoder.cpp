@@ -103,10 +103,8 @@ void TcpMpegDecoder::startDecoding(ThreadSafeQueue<Image>* pQueuePtr)
 					{
 						//got jpeg
 						_iDecodedImageCount++;
-						//Image image(stream.getWidth(), stream.getHeight(), _vCurrentImageData, stream.getId(), _sCurrentImageTimeStamp, "");
 						Image image(_vCurrentImageData, _sCurrentImageTimeStamp);
 						(*pQueuePtr).push(image);
-						//cout << "TcpMpegDecoder::startDecoding: Produced image from stream " << stream.getId() << " at " << _sCurrentImageTimeStamp << endl;
 						//cout << "Decoded image no : " << _iDecodedImageCount << endl;
 					}
 					else //error

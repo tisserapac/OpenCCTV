@@ -40,7 +40,6 @@ private:
 public:
 	TcpMpegDecoder();
 	bool init(string sServerName, string sServerPort, string sUrl);
-	//void startDecoding(ThreadSafeQueue<Image>& queuePtr, unsigned int imageCount);
 	void startDecoding(ThreadSafeQueue<Image>* pQueuePtr);
 	bool isStillProcessing();
 	virtual ~TcpMpegDecoder();
