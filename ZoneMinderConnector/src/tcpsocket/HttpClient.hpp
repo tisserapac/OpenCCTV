@@ -24,6 +24,7 @@ struct ReceivedDataStruct
 };
 
 class HttpClient {
+
 private:
 	boost::asio::ip::tcp::socket *_socket;
 	boost::asio::streambuf _streambufTemp;
@@ -39,6 +40,7 @@ public:
 	void write(string message);
 	ReceivedDataStruct* readBytes();
 	virtual ~HttpClient();
+
 };
 
 } /* namespace tcpsocket */
