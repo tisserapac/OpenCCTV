@@ -17,7 +17,7 @@ Image::Image()
 	this->_sResult = "";
 }
 
-Image::Image(vector<char>& vImageData, const string& sTimestamp)
+/*Image::Image(vector<char>& vImageData, const string& sTimestamp)
 {
 	this->_iWidth = 0;
 	this->_iHeight = 0;
@@ -28,7 +28,7 @@ Image::Image(vector<char>& vImageData, const string& sTimestamp)
 
 	this->_vImageData = vImageData;
 	this->_sTimestamp = sTimestamp;
-}
+}*/
 
 Image::Image(unsigned int iWidth, unsigned int iHeight, vector<char>& vImageData, unsigned int iStreamId, const string& sTimestamp, const string& sResult)
 {

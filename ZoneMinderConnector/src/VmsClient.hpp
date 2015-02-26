@@ -8,9 +8,9 @@
 #ifndef VMSCLIENT_HPP_
 #define VMSCLIENT_HPP_
 
-#include <string>
 #include "ThreadSafeQueue.hpp"
 #include "Image.hpp"
+#include "VmsConnectInfo.hpp"
 
 using namespace std;
 
@@ -19,8 +19,8 @@ class VmsClient
 public:
 	VmsClient(){}
 	virtual ~VmsClient(){}
-	virtual void produceImageObjects(ThreadSafeQueue<Image>* pQueue) = 0;
-	virtual bool init(string sParamString) = 0;
+	virtual bool init(VmsConnectInfo info) = 0;
+	virtual int produceImageObject(ThreadSafeQueue<Image>* pQueue) = 0;
 	virtual bool isStillProducingImages() = 0;
 };
 

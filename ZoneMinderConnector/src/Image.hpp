@@ -37,7 +37,7 @@ private:
 
 public:
 	Image();
-	Image(vector<char>& vImageData, const string& sTimestamp);
+	//Image(vector<char>& vImageData, const string& sTimestamp);
 	Image(unsigned int iWidth, unsigned int iHeight, vector<char>& vImageData, unsigned int iStreamId, const string& sTimestamp, const string& sResult);
 	~Image();
 
