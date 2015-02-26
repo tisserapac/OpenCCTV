@@ -12,32 +12,29 @@ namespace zoneminder {
 ZoneminderClient::ZoneminderClient() : VmsClient()
 {
 	_pDecoderPtr = NULL;	//Initialized in the init() function
-	_sUsername = "";
-	_sPassword = "";
-	_sServerName = "";
-	_sServerPort = "";
-	_sIP = "";
-	_sCameraId = "";
-	_sFramesPerSecond = "";
 }
 
-bool ZoneminderClient::init(string sParamString)
+bool ZoneminderClient::init(VmsConnectInfo info)
 {
-	if (!setParameters(sParamString)){
+	string sAuth, sConnKey, sRand;
+
+	if(!getZMLiveStreamDetails(info.sServerIp, info.iServerPort, info.sUsername, info.sPassword, info.sCameraId, sAuth, sConnKey, sRand))
+	{
 		return false;
 	}
 
-	//TODO : Remove hard auth, connkey and rand values of the url
 	stringstream ssUrl;
-	ssUrl << "/cgi-bin/nph-zms?mode=jpeg&monitor=" << _sCameraId;
-	ssUrl << "&scale=100&maxfps=5&buffer=1000&auth=";
-	ssUrl << "ae73e7cd5cc6490044f42a8aa097bd90";
-	ssUrl << "&connkey=123565&rand=1424830256";
-	_sUrl = ssUrl.str();
+	ssUrl << "/cgi-bin/nph-zms?mode=jpeg&monitor=" << info.sCameraId;
+	ssUrl << "&scale=100&maxfps=5&buffer=1000&auth=" << sAuth;
+	ssUrl << "&connkey=" << sConnKey;
+	ssUrl << "&rand=" << sRand;
+	string _sUrl = ssUrl.str();
+
+	//cout << "_sUrl : " << _sUrl << endl;
 
 	_pDecoderPtr = new TcpMpegDecoder();
 
-	if (!_pDecoderPtr->init(_sServerName,_sServerPort,_sUrl))
+	if (!_pDecoderPtr->init(info.sServerIp,info.iServerPort,_sUrl))
 	{
 		delete _pDecoderPtr; _pDecoderPtr = NULL;
 		return false;
@@ -46,12 +43,17 @@ bool ZoneminderClient::init(string sParamString)
 	return true;
 }
 
-void ZoneminderClient::produceImageObjects(ThreadSafeQueue<Image>* pQueue)
+int ZoneminderClient::produceImageObject(ThreadSafeQueue<Image>* pQueue)
 {
 	if(_pDecoderPtr)
 	{
 		(*_pDecoderPtr).startDecoding(pQueue);
+		return 1;
+
+	}else{
+		return -1;
 	}
+
 }
 
 bool ZoneminderClient::isStillProducingImages()
@@ -66,53 +68,69 @@ bool ZoneminderClient::isStillProducingImages()
 	}
 }
 
-bool ZoneminderClient::setParameters(string sParamString)
+bool ZoneminderClient::getZMLiveStreamDetails(const string& sServerName, const int iServerPort, const string& sUsername, const string& sPassword, const string& sCameraId, string& sAuth, string& sConnkey, string& sRand)
 {
-	/***** A sample XML string expected in sParamString ******
-	<?xml version="1.0" encoding="utf-8"?>
-	<ConecterParams>
-		<ServerName>ServerName</ServerName>
-		<ServerIP>ServerIP</ServerIP>
-		<ServerPort>80</ServerPort>
-		<Username>username</Username>
-		<Password>password</Password>
-		<CamraID>7</CamraID>
-		<StreamWidth>320</StreamWidth>
-		<StreamHeight>240</StreamHeight>
-		<CompressionRate>0</CompressionRate>
-		<AspectRatio>1</AspectRatio>
-		<FramesPerSecond>5</FramesPerSecond>
-	</ConecterParams>
-	********************************************************/
+	FILE *in;
+	char buff[512];
 
-	bool bResult = false;
+	string sScriptPath = "/home/anjana/eclipse-git-workspace/OpenCCTV/ZoneMinderConnector/Debug/zm_conn.rb";
 
-	ptree pt;
-	istringstream iss(sParamString);
-	try
+	size_t pos = sServerName.find("http://");
+	string sServerPath = sServerName;
+	if (pos == string::npos)
 	{
-		read_xml(iss, pt);
-		_sServerName = pt.get<string>("ConecterParams.ServerName"); trim(_sServerName);
-		_sServerPort = pt.get<string>("ConecterParams.ServerPort"); trim(_sServerPort);
-		_sUsername = pt.get<string>("ConecterParams.Username"); trim(_sUsername);
-		_sPassword = pt.get<string>("ConecterParams.Password"); trim(_sPassword);
-		_sCameraId = pt.get<string>("ConecterParams.CamraID"); trim(_sCameraId);
-		_sFramesPerSecond = pt.get<string>("ConecterParams.FramesPerSecond"); trim(_sFramesPerSecond);
+		sServerPath = "http://" + sServerPath;
+	}
 
-		bResult = true;
+	stringstream ssCommand;
+	ssCommand << "ruby "<< sScriptPath << " ";
+	ssCommand << sServerPath << ":" << iServerPort << " ";
+	ssCommand << sUsername << " ";
+	ssCommand << sPassword << " ";
+	ssCommand << sCameraId;
 
-	}catch(boost::property_tree::xml_parser::xml_parser_error &e)
-	{
-		std::cerr << "ZoneminderClient::setParameters: "<<e.what() << std::endl;
-		return false;
+	string sCommand = ssCommand.str();
 
-	}catch(boost::property_tree::ptree_bad_path &e)
-	{
-		std::cerr << "ZoneminderClient::setParameters: "<< e.what() << std::endl;
+	//pCommand = "ruby /home/anjana/eclipse-git-workspace/OpenCCTV/ZoneMinderConnector/Debug/zm_conn.rb http://zoneminder.cs.ait.ac.th lakindu OpenCCTV@1 7";
+
+	if(!(in = popen(sCommand.c_str(), "r"))){
 		return false;
 	}
 
-	return bResult;
+	string  sResult = "";
+
+	while(fgets(buff, sizeof(buff), in) != NULL){
+		sResult += buff;
+	}
+	pclose(in);
+
+	sResult = sResult.substr(0, sResult.length()-1);
+
+	//Sample Result :
+	//http://servername/cgi-bin/nph-zms?mode=jpeg&monitor=7&scale=100&maxfps=5&buffer=1000&auth=1b9e06f5b96209322d89bc0c50c7de99&connkey=770280&rand=1424845345
+	//cout << "sResult Length : " << sResult.length() << endl;
+	//cout << "sResult : " << sResult << endl;
+
+	size_t pos1 = sResult.find("auth=");
+	size_t pos2 = sResult.find("&connkey=");
+	size_t pos3 = sResult.find("&rand=");
+
+	if (pos1 != string::npos && pos2 != string::npos && pos3 != string::npos)
+	{
+		pos1 += 5;
+		sAuth = sResult.substr(pos1,pos2-pos1);
+
+		pos2 += 9;
+		sConnkey = sResult.substr (pos2,pos3-pos2);
+
+		pos3 += 6;
+		sRand = sResult.substr (pos3);
+	}
+	else
+	{
+		return false;
+	}
+	return true;
 }
 
 ZoneminderClient::~ZoneminderClient()

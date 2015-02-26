@@ -16,6 +16,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <boost/lexical_cast.hpp>
 
 using namespace std;
 using namespace tcpsocket;
@@ -39,7 +40,7 @@ private:
 
 public:
 	TcpMpegDecoder();
-	bool init(string sServerName, string sServerPort, string sUrl);
+	bool init(string sServerName, int iServerPort, string sUrl);
 	void startDecoding(ThreadSafeQueue<Image>* pQueuePtr);
 	bool isStillProcessing();
 	virtual ~TcpMpegDecoder();

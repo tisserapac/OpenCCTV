@@ -21,7 +21,6 @@ public:
 	static bool isConnectionSuccessful(string sResponseStatus);
 	virtual ~ZoneminderMessage();
 };
-
 } /* namespace zoneminder */
 
 #endif /* ZONEMINDERMESSAGE_HPP_ */

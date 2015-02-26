@@ -21,7 +21,6 @@ bool ZoneminderMessage::isConnectionSuccessful(string sResponseStatus)
 	{
 		iResult = true;
 	}
-
 	return iResult;
 }
 

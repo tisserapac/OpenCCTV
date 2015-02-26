@@ -19,9 +19,11 @@ TcpMpegDecoder::TcpMpegDecoder()
 	_iDecodedImageCount = 0;
 }
 
-bool TcpMpegDecoder::init(string sServerName, string sServerPort, string sUrl)
+bool TcpMpegDecoder::init(string sServerName, int iServerPort, string sUrl)
 {
 	bool bResult = true;
+
+	string sServerPort =  boost::lexical_cast<string>(iServerPort);
 
 	_pHttpClientPtr = new HttpClient(sServerName, sServerPort);
 	if((*_pHttpClientPtr).sendGetRequest(sServerName, sUrl))
@@ -49,18 +51,10 @@ void TcpMpegDecoder::startDecoding(ThreadSafeQueue<Image>* pQueuePtr)
 	_bDecodeEnable = true;
 	_bStillProcessing = true;
 
-	//TODO : Remove the temp variable imageCount
-	unsigned int imageCount = 10;
-
 	while(_bDecodeEnable)
 	{
-		if(_iDecodedImageCount >= imageCount)
-		{
-			_bStillProcessing = false;
-			break;
-		}
-		ReceivedDataStruct* dataStructPtr = (*_pHttpClientPtr).readBytes();
 
+		ReceivedDataStruct* dataStructPtr = (*_pHttpClientPtr).readBytes();
 		ostringstream strOtherThanImageData;
 		size_t i = 0;
 		while(i < (*dataStructPtr).length)
@@ -103,8 +97,10 @@ void TcpMpegDecoder::startDecoding(ThreadSafeQueue<Image>* pQueuePtr)
 					{
 						//got jpeg
 						_iDecodedImageCount++;
-						Image image(_vCurrentImageData, _sCurrentImageTimeStamp);
-						(*pQueuePtr).push(image);
+						Image image;
+						image.setImageData(_vCurrentImageData);
+						image.setTimestamp(_sCurrentImageTimeStamp);
+						pQueuePtr->push(image);
 						//cout << "Decoded image no : " << _iDecodedImageCount << endl;
 					}
 					else //error

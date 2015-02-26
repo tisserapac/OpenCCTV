@@ -11,15 +11,10 @@
 #include <iostream>
 #include <string>
 #include "../VmsClient.hpp"
+#include "../VmsConnectInfo.hpp"
 #include "TcpMpegDecoder.hpp"
-#include <boost/property_tree/xml_parser.hpp>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/algorithm/string.hpp>
-#include <boost/lexical_cast.hpp>
 
 using namespace std;
-using boost::property_tree::ptree;
-using namespace boost::algorithm;
 using namespace tcpsocket;
 
 namespace zoneminder {
@@ -28,23 +23,14 @@ class ZoneminderClient : public VmsClient
 {
 private:
 	TcpMpegDecoder* _pDecoderPtr;
-	string _sUsername;
-	string _sPassword;
-	string _sServerName;
-	string _sServerPort;
-	string _sUrl;
-	string _sIP;
-	string _sCameraId;
-	string _sFramesPerSecond;
-
-	bool setParameters(string sParamString);
+	bool getZMLiveStreamDetails(const string& sServerName, const int iServerPort, const string& sUsername, const string& sPassword, const string& sCameraId, string& sAuth, string& sConnkey, string& sRand);
 
 public:
 	ZoneminderClient();
 	virtual ~ZoneminderClient();
 
-	bool init(string sParamString);
-	void produceImageObjects(ThreadSafeQueue<Image>* pQueue);
+	bool init(VmsConnectInfo info);
+	int produceImageObject(ThreadSafeQueue<Image>* pQueue);
 	bool isStillProducingImages();
 };
 

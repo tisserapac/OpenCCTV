@@ -40,7 +40,6 @@ public:
 	void write(string message);
 	ReceivedDataStruct* readBytes();
 	virtual ~HttpClient();
-
 };
 
 } /* namespace tcpsocket */

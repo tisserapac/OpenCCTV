@@ -14,7 +14,6 @@ HttpClient::HttpClient(string sServerName, string sServerPort)
 	try
 	{
 		boost::asio::io_service io_service;
-
 		// Get a list of endpoints corresponding to the server name.
 		boost::asio::ip::tcp::resolver resolver(io_service);
 		boost::asio::ip::tcp::resolver::query query(sServerName, sServerPort);
